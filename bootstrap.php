@@ -28,7 +28,6 @@ if ($accessToken) {
 }
 
 $fb = new \Facebook\Facebook($fbData);
-    
+
 return $fb;
-    
-  
+

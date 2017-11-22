@@ -6,6 +6,7 @@ $accessToken = $helper->getAccessToken();
 
 $oAuth2Client = $fb->getOAuth2Client();
 $accessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
+// unset($_SESSION['fb_access_tokem']);
 $_SESSION['fb_access_tokem'] = (string) $accessToken;
 
 $response = $fb->get('/me?fields=id, name, email', $accessToken);
