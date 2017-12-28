@@ -42,12 +42,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach($pages['data'] as $page) : ?>
-                                <tr>
-                                    <td><?= $page['name']; ?></td>
-                                    <td><a href="/posts?name=<?=$page['name']; ?>&access_token=<?=$page['access_token']; ?>&pageid=<?=$page['id']; ?>">posts</a></td>
-                                </tr>
-                            <?php endforeach; ?>
+                            <tr>
+                                <td>title</td>
+                                <td><a href="/posts.html">posts</a></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

@@ -29,45 +29,37 @@ $fb = new \Facebook\Facebook($fbData);
 
 $app->get('/login', function (Request $request, Response $response, array $args) use ($fb) { 
 
-
-    $fb = require __DIR__ . '/bootstrap.php';
     $helper = $fb->getRedirectLoginHelper();
     $permissions = ['email', 'user_birthday', 'pages_show_list, publish_pages'];
     $loginUrl = $helper->getLoginUrl('http://localhost:8080/me', $permissions);
 
-    $name = '/login';
-    return $this->renderer->render($response, 'index.phtml', compact('name'));
+    return $this->renderer->render($response, 'login.phtml', compact('loginUrl'));
 });
 
 $app->get('/me', function (Request $request, Response $response, array $args) use ($fb) {
 
-    $fb = require __DIR__ . '/../bootstrap.php';
     $helper = $fb->getRedirectLoginHelper();
     $accessToken = $helper->getAccessToken();
 
+    $fb_response = $fb->get('/me?fields=id, name, email', $accessToken);
+    $me = $fb_response->getDecodedBody();
+
     $oAuth2Client = $fb->getOAuth2Client();
     $accessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
-    // unset($_SESSION['fb_access_tokem']);
     $_SESSION['fb_access_tokem'] = (string) $accessToken;
 
-    $response = $fb->get('/me?fields=id, name, email', $accessToken);
+    return json_encode(compact('$_SESSION', 'me'));
 
-    dd($response->getDecodedBody());
-
-
-    $name = '/me';
-    return $this->renderer->render($response, 'index.phtml', compact('name'));
 });
 
 $app->get('/', function (Request $request, Response $response, array $args) use ($fb) {
 
-    // $fb = require __DIR__ . '/bootstrap.php';
-
     $fb_response = $fb->get('me/accounts?fields=picture,cover,name,perms,access_token,manage_pages');
-    $fb_response = $fb_response->getDecodedBody();
+    $pages = $fb_response->getDecodedBody();
 
-    $name = '/';
-    return $this->renderer->render($response, 'index.phtml', compact('name'));
+    unset($pages['data'][0]);
+
+    return $this->renderer->render($response, 'index.phtml', compact('pages'));
 });
 
 $app->get('/posts', function (Request $request, Response $response, array $args) {
@@ -78,10 +70,9 @@ $app->get('/posts', function (Request $request, Response $response, array $args)
         'access_token'  => filter_input(INPUT_GET, 'access_token')
     ];
 
-    $posts = $this->db->table('posts')->where('pageid', $pageid)->get();
+    $posts = $this->db->table('posts')->where('pageid', $page['pageid'])->get();
 
-    $name = '/posts';
-    return $this->renderer->render($response, 'index.phtml', compact('name'));
+    return $this->renderer->render($response, 'posts.phtml', compact('posts', 'page'));
 });
 
 $app->post('/posts', function (Request $request, Response $response, array $args) use ($fb) {
@@ -95,6 +86,5 @@ $app->post('/posts', function (Request $request, Response $response, array $args
     $this->db->table('posts')
         ->insert(compact('pageid', 'message', 'access_tokem', 'publish_date', 'published'));
 
-    $name = '/posts';
-    return $this->renderer->render($response, 'index.phtml', compact('name'));
+    return $response->withStatus(302)->withHeader('Location', '/');
 });
